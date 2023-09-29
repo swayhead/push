@@ -226,7 +226,7 @@
       },
       {
         "command": "push.removeQueuedItem",
-        "title": "Remove file from queue",
+        "title": "Remove file(s) from queue",
         "category": "Push"
       },
       {

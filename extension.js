@@ -74,6 +74,7 @@ exports.activate = (context) => {
 		'push.uploadQueueExplorer',
 		ui.push.explorers.uploadQueue
 	);
+	vscode.window.createTreeView('push.uploadQueueExplorer', { treeDataProvider: ui.push.explorers.uploadQueue, canSelectMany: true });
 };
 
 // this method is called when your extension is deactivated

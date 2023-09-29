@@ -18,18 +18,23 @@ class UI {
 		this.push.listQueueItems(Push.queueDefs.upload);
 	}
 
-	removeUploadQueuedItem(context) {
+	removeUploadQueuedItem(context, items) {
 		let uri;
-
-		if (context instanceof vscode.TreeItem) {
-			uri = context.resourceUri;
-		} else {
-			uri = this.push.paths.getFileSrc(context);
+		if (!Array.isArray(items)) {
+			items = [context];
 		}
 
-		this.push.removeQueuedUri(Push.queueDefs.upload, uri);
+		items.forEach(itemContext => {
+			if (itemContext instanceof vscode.TreeItem) {
+				uri = itemContext.resourceUri;
+			} else {
+				uri = this.push.paths.getFileSrc(itemContext);
+			}
+	
+			this.push.removeQueuedUri(Push.queueDefs.upload, uri);
+		})		
 	}
-
+	
 	execUploadQueue() {
 		return this.push.execUploadQueue.apply(this.push, arguments);
 	}

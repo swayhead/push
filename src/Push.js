@@ -242,6 +242,32 @@ class Push extends PushBase {
 		});
 	}
 
+	queueGitDiffFromMaster(uri, exec = false, baseBranch = 'master') {
+		const dir = this.paths.getCurrentWorkspaceRootPath(uri, true);
+
+		return this.scm.exec(
+			SCM.providers.git,
+			dir,
+			'listDiffUris',
+			baseBranch,
+			'HEAD'
+		)
+			.then((uris) => this.paths.filterUrisByGlobs(uris, this.config.ignoreGlobs))
+			.then((result) => {
+				const filtered = Array.isArray(result) ? result : result.uris;
+
+				if (!filtered || !filtered.length) {
+					return utils.showWarning(i18n.t('queue_empty'));
+				}
+
+				if (exec) {
+					return this.transfer(filtered, 'put');
+				}
+
+				return this.queueForUpload(filtered);
+			});
+	}
+
 	queueGitCommitChanges(uri, exec = false) {
 		let dir = this.paths.getCurrentWorkspaceRootPath(uri, true);
 

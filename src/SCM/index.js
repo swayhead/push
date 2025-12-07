@@ -45,6 +45,7 @@ class SCM {
 	 *
 	 * Available methods are:
 	 *  - listWorkingFiles()
+	 *  - listDiffUris(baseBranch, compareWith)
 	 */
 	exec(provider, dir, method) {
 		method = method && '_' + method || null;
@@ -100,6 +101,49 @@ class SCM {
 					resolve(files);
 				});
 
+				break;
+
+			default:
+				reject(new Error('Unknown provider.'));
+			}
+		});
+	}
+
+	_listDiffUris(provider, dir, args = []) {
+		return new Promise((resolve, reject) => {
+			const [baseBranch = 'master', compareWith = 'HEAD'] = args;
+			let range;
+			switch (provider.id) {
+			case SCM.providers.git:
+				provider.instance.cwd(dir);
+
+				range = `${baseBranch}...${compareWith}`;
+
+				provider.instance.diff([
+					'--name-only',
+					'--diff-filter=ACMR',
+					range
+				], (error, status = '') => {
+					if (error) {
+						return reject(error);
+					}
+
+					if (!status.trim().length) {
+						return resolve([]);
+					}
+
+					const files = status
+						.trim()
+						.split('\n')
+						.filter(Boolean)
+						.map((file) => this.paths.join(
+							dir,
+							this._cleanGitPath(file)
+						))
+						.filter((uri) => this.paths.fileExists(uri));
+
+					return resolve(files);
+				});
 				break;
 
 			default:

@@ -40,6 +40,8 @@ exports.activate = (context) => {
 		'push.clearUploadQueue': 'clearUploadQueue',
 		'push.queueGitChangedFiles': 'queueGitChangedFiles',
 		'push.uploadGitChangedFiles': 'uploadGitChangedFiles',
+		'push.queueGitDiffFromMaster': 'queueGitDiffFromMaster',
+		'push.uploadGitDiffFromMaster': 'uploadGitDiffFromMaster',
 		'push.queueGitCommit': 'queueGitCommit',
 		'push.uploadGitCommit': 'uploadGitCommit',
 		'push.cancelQueues': 'cancelQueues',

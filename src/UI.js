@@ -61,6 +61,22 @@ class UI {
 		}
 	}
 
+	queueGitDiffFromMaster() {
+		let uri;
+
+		if ((uri = this.push.getValidUri(uri))) {
+			return this.push.queueGitDiffFromMaster(uri).catch(this.push.catchError);
+		}
+	}
+
+	uploadGitDiffFromMaster() {
+		let uri;
+
+		if ((uri = this.push.getValidUri(uri))) {
+			return this.push.queueGitDiffFromMaster(uri, true).catch(this.push.catchError);
+		}
+	}
+
 	queueGitCommit() {
 		let uri;
 

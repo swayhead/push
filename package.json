@@ -2,7 +2,7 @@
   "name": "push",
   "displayName": "Push",
   "description": "SFTP and File based uploading",
-  "version": "0.8.21",
+  "version": "0.8.22",
   "publisher": "njp-anderson",
   "engines": {
     "vscode": "^1.30.0"
@@ -246,6 +246,16 @@
       {
         "command": "push.uploadGitChangedFiles",
         "title": "Upload all Git working files",
+        "category": "Push"
+      },
+      {
+        "command": "push.queueGitDiffFromMaster",
+        "title": "Queue files differing from master",
+        "category": "Push"
+      },
+      {
+        "command": "push.uploadGitDiffFromMaster",
+        "title": "Upload files differing from master",
         "category": "Push"
       },
       {

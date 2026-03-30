@@ -1,6 +1,9 @@
 const vscode = require('vscode');
 const semver = require('semver');
 const flatMap = require('flatmap');
+const fs = require('fs');
+const path = require('path');
+const glob = require('glob');
 
 const packageJson = require('../package.json');
 const PushError = require('./lib/types/PushError');
@@ -266,6 +269,96 @@ class Push extends PushBase {
 
 				return this.queueForUpload(filtered);
 			});
+	}
+
+	queueHtdocsFiles(uri, exec = false) {
+		const workspaceRoot = this.paths.getCurrentWorkspaceRootPath(uri, true);
+
+		// Use htdocs subdirectory if it exists, otherwise use the workspace root itself
+		const htdocsSub = path.join(workspaceRoot, 'htdocs');
+		const htdocsPath = (fs.existsSync(htdocsSub) && fs.statSync(htdocsSub).isDirectory())
+			? htdocsSub
+			: workspaceRoot;
+
+		// Fixed exclusion patterns
+		const ignoreGlobs = [
+			// File patterns
+			'**/*area*.json',
+			'**/*.xml',
+			'**/*.md',
+			'**/test.*',
+			'**/info.php',
+			'**/resets',
+			'**/.gitignore',
+			// Directory patterns
+			'**/*test*/**',
+			'**/*generated*/**',
+			'**/images/cms/**',
+			'**/interna-media/**',
+			'**/install/**',
+			'**/mod/stunden/**',
+			// Merge the push ignore list
+			...this.config.ignoreGlobs
+		];
+
+		// Find all .gitignore files within htdocs (including the root one)
+		const gitignoreFiles = glob.sync(
+			this.paths.ensureGlobPath(htdocsPath) + '/**/.gitignore',
+			{ dot: true }
+		);
+
+		// Parse each .gitignore and convert its patterns to micromatch-compatible globs
+		gitignoreFiles.forEach((gitignoreFile) => {
+			const gitignoreDir = path.dirname(gitignoreFile).replace(/\\/g, '/');
+			const content = fs.readFileSync(gitignoreFile, 'utf8');
+
+			content.split('\n').forEach((line) => {
+				line = line.trim();
+
+				// Skip empty lines, comments and negation patterns
+				if (!line || line.startsWith('#') || line.startsWith('!')) {
+					return;
+				}
+
+				const isRooted = line.startsWith('/');
+				const isDir = line.endsWith('/');
+				const pattern = line.replace(/^\//, '').replace(/\/$/, '');
+
+				if (isRooted) {
+					// Rooted to the directory containing this .gitignore
+					const abs = `${gitignoreDir}/${pattern}`;
+					ignoreGlobs.push(abs);
+					if (isDir) {
+						ignoreGlobs.push(`${abs}/**`);
+					}
+				} else {
+					// Scoped to the directory containing this .gitignore
+					ignoreGlobs.push(`${gitignoreDir}/${pattern}`);
+					ignoreGlobs.push(`${gitignoreDir}/**/${pattern}`);
+					if (isDir) {
+						ignoreGlobs.push(`${gitignoreDir}/${pattern}/**`);
+						ignoreGlobs.push(`${gitignoreDir}/**/${pattern}/**`);
+					}
+				}
+			});
+		});
+
+		return this.paths.getDirectoryContentsAsFiles(
+			vscode.Uri.file(htdocsPath),
+			ignoreGlobs
+		).then((files) => {
+			if (!files || !files.length) {
+				return utils.showWarning(i18n.t('queue_empty'));
+			}
+
+			const uris = files.map(f => vscode.Uri.file(f));
+
+			if (exec) {
+				return this.transfer(uris, 'put');
+			}
+
+			return this.queueForUpload(uris);
+		});
 	}
 
 	queueGitCommitChanges(uri, exec = false) {

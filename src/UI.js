@@ -77,6 +77,22 @@ class UI {
 		}
 	}
 
+	queueHtdocsFiles() {
+		let uri;
+
+		if ((uri = this.push.getValidUri(uri))) {
+			return this.push.queueHtdocsFiles(uri).catch(this.push.catchError);
+		}
+	}
+
+	uploadHtdocsFiles() {
+		let uri;
+
+		if ((uri = this.push.getValidUri(uri))) {
+			return this.push.queueHtdocsFiles(uri, true).catch(this.push.catchError);
+		}
+	}
+
 	queueGitCommit() {
 		let uri;
 

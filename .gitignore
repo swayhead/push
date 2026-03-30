@@ -4,3 +4,4 @@ node_modules
 /docs
 /.rsync.json
 /dist
+.claude/settings.local.json
